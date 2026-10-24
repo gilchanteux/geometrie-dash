@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#101018">
+
+    <title>Cube Runner - Geometry Dash</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background: #101018;
+            color: white;
+            font-family: Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+        }
+
+        /* =========================
+           MENU DU PSEUDO
+        ========================= */
+        #menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 15px;
+        }
+
+        #menuBox {
+            background: #202030;
+            border: 3px solid white;
+            padding: 35px 25px;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 234, 255, 0.4);
+            width: 92vw;
+            max-width: 380px;
+        }
+
+        #menuBox h1 {
+            color: cyan;
+            font-size: clamp(28px, 6vw, 42px);
+            margin-top: 0;
+            text-shadow: 0 0 15px #00eaff;
+        }
+
+        #pseudo {
+            padding: 12px;
+            width: 100%;
+            max-width: 250px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: 2px solid #00eaff;
+            background: #151520;
+            color: white;
+            outline: none;
+            text-align: center;
+        }
+
+        #commencer {
+            margin-top: 20px;
+            padding: 14px 34px;
+            font-size: 18px;
+            font-weight: bold;
+            background: cyan;
+            color: #101018;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
+        }
+
+        #commencer:hover, #commencer:active {
+            background: white;
+            box-shadow: 0 0 20px white;
+            transform: scale(1.05);
+        }
+
+        /* =========================
+           JEU
+        ========================= */
+        #conteneur {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 12px;
+            max-width: 1220px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #zoneJeu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        #canvasWrapper {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #jeu {
+            width: 100%;
+            height: auto;
+            max-width: 900px;
+            aspect-ratio: 900 / 400;
+            border: 3px solid #00eaff;
+            background: #202030;
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+            display: block;
+            cursor: pointer;
+            touch-action: none;
+            border-radius: 8px;
+        }
+
+        /* Bannière d'orientation pour smartphone */
+        #alerteOrientation {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(0, 234, 255, 0.12);
+            border: 1px solid #00eaff;
+            color: #00eaff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.2);
+        }
+
+        @media (max-width: 850px) and (orientation: portrait) {
+            #alerteOrientation {
+                display: block;
+            }
+        }
+
+        /* Bouton tactile mobile géant */
+        #zoneTactileMobile {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 12px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(0, 234, 255, 0.2), rgba(168, 85, 247, 0.25));
+            border: 2px solid #00eaff;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(0, 234, 255, 0.25);
+            transition: transform 0.08s ease, background 0.08s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        #zoneTactileMobile:active, #zoneTactileMobile.touche-active {
+            background: linear-gradient(135deg, rgba(0, 234, 255, 0.55), rgba(168, 85, 247, 0.55));
+            transform: scale(0.98);
+            box-shadow: 0 0 25px rgba(0, 234, 255, 0.5);
+        }
+
+        @media (pointer: coarse), (max-width: 900px) {
+            #zoneTactileMobile {
+                display: block;
+            }
+        }
+
+        /* Bouton plein écran */
+        #btnPleinEcran {
+            background: #1e1e2f;
+            color: #00eaff;
+            border: 1px solid #00eaff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+        }
+
+        #btnPleinEcran:hover, #btnPleinEcran:active {
+            background: #00eaff;
+            color: #101018;
+        }
+
+        /* =========================
+           SCORES
+        ========================= */
+        #scores {
+            width: 250px;
+            min-height: 400px;
+            background: #181820;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        #scores h2 {
+            text-align: center;
+            margin-top: 0;
+            color: gold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 5px 0;
+            background: #252535;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .nomScore {
+            color: cyan;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 140px;
+        }
+
+        .pointsScore {
+            color: gold;
+            font-weight: bold;
+        }
+
+        /* =========================
+           INFORMATIONS
+        ========================= */
+        #info {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 17px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #joueur {
+            color: #00eaff;
+            font-weight: bold;
+        }
+
+        #modeActuel {
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .mode-cube {
+            color: #00eaff;
+            background: rgba(0, 234, 255, 0.15);
+            border: 1px solid #00eaff;
+        }
+
+        .mode-fusee {
+            color: #ff007f;
+            background: rgba(255, 0, 127, 0.15);
+            border: 1px solid #ff007f;
+            animation: pulseMode 1s infinite alternate;
+        }
+
+        @keyframes pulseMode {
+            from { box-shadow: 0 0 4px #ff007f; }
+            to { box-shadow: 0 0 12px #ff007f; }
+        }
+
+        #niveau {
+            color: cyan;
+            font-weight: bold;
+        }
+
+        #score {
+            color: gold;
+            font-weight: bold;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 17px;
+            min-height: 26px;
+        }
+
+        #commandesGuide {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #aaa;
+            background: #181824;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #33334d;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* =========================
+           RESPONSIVE MOBILE (ANDROID & IPHONE)
+        ========================= */
+        @media (max-width: 1100px) {
+            #conteneur {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+                padding: 8px;
+            }
+
+            #scores {
+                width: 100%;
+                max-width: 900px;
+                min-height: auto;
+            }
+
+            #info {
+                font-size: 15px;
+            }
+
+            #menuBox {
+                padding: 25px 15px;
+                width: 92vw;
+                max-width: 360px;
+            }
+
+            #menuBox h1 {
+                font-size: 32px;
+            }
+
+            #pseudo {
+                width: 85%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =====================================
+     MENU DU PSEUDO
+===================================== -->
+<div id="menu">
+    <div id="menuBox">
+        <h1>🎮 CUBE RUNNER</h1>
+        <p>Entre ton pseudo :</p>
+        <input
+            id="pseudo"
+            type="text"
+            maxlength="15"
+            placeholder="Ton pseudo"
+            autofocus
+        >
+        <br>
+        <button id="commencer">
+            COMMENCER
+        </button>
+    </div>
+</div>
+
+<!-- =====================================
+     JEU
+===================================== -->
+<div id="conteneur">
+    <div id="zoneJeu">
+        <div id="alerteOrientation">
+            📱 <b>Conseil :</b> Tourne ton téléphone en mode <b>paysage (horizontal)</b> pour une meilleure vue ! 🔄
+        </div>
+
+        <div id="canvasWrapper">
+            <canvas
+                id="jeu"
+                width="900"
+                height="400">
+            </canvas>
+        </div>
+
+        <!-- BOUTON / ZONE TACTILE MOBILE -->
+        <div id="zoneTactileMobile">
+            <span id="texteZoneTactile">👆 TOUCHE L'ÉCRAN POUR SAUTER</span>
+        </div>
+
+        <div id="info">
+            <span>Joueur : <span id="joueur">---</span></span>
+            <span>&nbsp;|&nbsp;</span>
+            <span>Mode : <span id="modeActuel" class="mode-cube">🟩 CUBE</span></span>
+            <span>&nbsp;|&nbsp;</span>
+            <span>Niveau : <span id="niveau">1</span></span>
+            <span>&nbsp;|&nbsp;</span>
+            <span>Score : <span id="score">0</span></span>
+            <button id="btnPleinEcran" type="button" title="Mode plein écran">⛶ Plein écran</button>
+        </div>
+
+        <div id="message">
+            Entre ton pseudo pour commencer !
+        </div>
+
+        <div id="commandesGuide">
+            📱 <b>Mobile</b> : Touche l'écran pour sauter / monter
+            &nbsp;|&nbsp;
+            💻 <b>PC</b> : <b>ESPACE</b> ou Clic
+        </div>
+    </div>
+
+    <!-- =================================
+         TABLEAU DES SCORES
+    ================================= -->
+    <div id="scores">
+        <h2>🌍 TOP MONDIAL</h2>
+        <div id="statutConnexion" style="font-size: 11px; text-align: center; color: #888; margin-bottom: 8px;"></div>
+        <div id="listeScores"></div>
+    </div>
+</div>
+
+<script>
+
+// =====================================================
+// CANVAS & CONTEXT
+// =====================================================
+const canvas = document.getElementById("jeu");
+const ctx = canvas.getContext("2d");
+
+// =====================================================
+// ÉLÉMENTS DOM
+// =====================================================
+const menu = document.getElementById("menu");
+const pseudoInput = document.getElementById("pseudo");
+const boutonCommencer = document.getElementById("commencer");
+const affichageJoueur = document.getElementById("joueur");
+const affichageMode = document.getElementById("modeActuel");
+const affichageScore = document.getElementById("score");
+const affichageNiveau = document.getElementById("niveau");
+const message = document.getElementById("message");
+const listeScores = document.getElementById("listeScores");
+const zoneTactileMobile = document.getElementById("zoneTactileMobile");
+const texteZoneTactile = document.getElementById("texteZoneTactile");
+const btnPleinEcran = document.getElementById("btnPleinEcran");
+
+// =====================================================
+// SYSTÈME AUDIO (WEB AUDIO API RETRO SYNTH)
+// =====================================================
+let audioCtx = null;
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+    }
+    return audioCtx;
+}
+
+function sonSaut() {
+    try {
+        const aCtx = getAudioContext();
+        const osc = aCtx.createOscillator();
+        const gain = aCtx.createGain();
+        osc.connect(gain);
+        gain.connect(aCtx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(280, aCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(620, aCtx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.18, aCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, aCtx.currentTime + 0.12);
+        osc.start();
+        osc.stop(aCtx.currentTime + 0.13);
+    } catch (e) {}
+}
+
+function sonPortail() {
+    try {
+        const aCtx = getAudioContext();
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+            const osc = aCtx.createOscillator();
+            const gain = aCtx.createGain();
+            osc.connect(gain);
+            gain.connect(aCtx.destination);
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, aCtx.currentTime + i * 0.05);
+            gain.gain.setValueAtTime(0.2, aCtx.currentTime + i * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, aCtx.currentTime + i * 0.05 + 0.22);
+            osc.start(aCtx.currentTime + i * 0.05);
+            osc.stop(aCtx.currentTime + i * 0.05 + 0.23);
+        });
+    } catch (e) {}
+}
+
+function sonCrash() {
+    try {
+        const aCtx = getAudioContext();
+        const bufferSize = Math.floor(aCtx.sampleRate * 0.3);
+        const buffer = aCtx.createBuffer(1, bufferSize, aCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = aCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = aCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(700, aCtx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(40, aCtx.currentTime + 0.28);
+        const gain = aCtx.createGain();
+        gain.gain.setValueAtTime(0.3, aCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, aCtx.currentTime + 0.28);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(aCtx.destination);
+        noise.start();
+    } catch (e) {}
+}
+
+function sonVictoire() {
+    try {
+        const aCtx = getAudioContext();
+        [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+            const osc = aCtx.createOscillator();
+            const gain = aCtx.createGain();
+            osc.connect(gain);
+            gain.connect(aCtx.destination);
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, aCtx.currentTime + i * 0.08);
+            gain.gain.setValueAtTime(0.22, aCtx.currentTime + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, aCtx.currentTime + i * 0.08 + 0.3);
+            osc.start(aCtx.currentTime + i * 0.08);
+            osc.stop(aCtx.currentTime + i * 0.08 + 0.31);
+        });
+    } catch (e) {}
+}
+
+function sonBoostFusee() {
+    try {
+        const aCtx = getAudioContext();
+        const osc = aCtx.createOscillator();
+        const gain = aCtx.createGain();
+        osc.connect(gain);
+        gain.connect(aCtx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(440, aCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(260, aCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.18, aCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, aCtx.currentTime + 0.08);
+        osc.start();
+        osc.stop(aCtx.currentTime + 0.09);
+    } catch (e) {}
+}
+
+// =====================================================
+// VARIABLES GLOBALES
+// =====================================================
+let nomJoueur = "";
+let niveauActuel = 0;
+let score = 0;
+let perdu = false;
+let niveauTermine = false;
+let vitesseJeu = 7.5;
+let partieCommencee = false;
+let espaceEnfonce = false;
+
+// Sol de base du jeu
+const sol = 340;
+
+// Objet Joueur (Cube & Fusée)
+const cube = {
+    x: 100,
+    y: 300,
+    tailleCube: 38,
+    largeurFusee: 46,
+    hauteurFusee: 24,
+    mode: "cube", // "cube" ou "fusee"
+
+    get largeur() {
+        return this.mode === "fusee" ? this.largeurFusee : this.tailleCube;
+    },
+    get hauteur() {
+        return this.mode === "fusee" ? this.hauteurFusee : this.tailleCube;
+    },
+
+    vitesseY: 0,
+    forceSaut: -13,
+    graviteCube: 0.65,
+    impulsionFusee: -5.8, // Impulsion plus vive et précise
+    graviteFusee: 0.46,   // Gravité plus réactive
+    vitesseChuteMax: 5.8, // Vitesse de descente maîtrisée
+    auSol: true,
+    rotation: 0
+};
+
+// Objets du niveau
+let portails = [];
+let blocs = [];
+let pics = [];
+let ligneArrivee = null;
+let particules = [];
+
+let niveauContientFusee = false; // Défini aléatoirement pour chaque niveau !
+let banniereTexte = "";
+let banniereTemps = 0;
+let distanceNiveau = 0;
+let distanceTotaleNiveau = 5000;
+
+// Étoiles de fond
+const etoiles = [];
+for (let i = 0; i < 45; i++) {
+    etoiles.push({
+        x: Math.random() * 900,
+        y: Math.random() * 280,
+        taille: Math.random() * 2 + 1,
+        vitesse: Math.random() * 0.6 + 0.2
+    });
+}
+
+// =====================================================
+// THÈMES VISUELS DES NIVEAUX (AMBIANCE, COULEURS, DÉCOR)
+// =====================================================
+const THEMES_NIVEAU = [
+    {
+        nom: "NÉON TECH",
+        fond: "#181828",
+        etoiles: "white",
+        sol: "#39d353",
+        solBordure: "#00ff88",
+        sousSol: "#142518",
+        blocCorps: "#161628",
+        blocBordure: "#a855f7",
+        blocMotif: "rgba(168, 85, 247, 0.4)",
+        blocRivet: "#c084fc",
+        picCouleur: "#ff253a"
+    },
+    {
+        nom: "LAVE VOLCANIQUE",
+        fond: "#241014",
+        etoiles: "#ffaa77",
+        sol: "#ff5e00",
+        solBordure: "#ff9900",
+        sousSol: "#30150a",
+        blocCorps: "#281216",
+        blocBordure: "#ff3b30",
+        blocMotif: "rgba(255, 59, 48, 0.4)",
+        blocRivet: "#ff9500",
+        picCouleur: "#ff2a2a"
+    },
+    {
+        nom: "CYBER MATRIX",
+        fond: "#0a1f14",
+        etoiles: "#55ff99",
+        sol: "#00e676",
+        solBordure: "#b9f6ca",
+        sousSol: "#06180e",
+        blocCorps: "#0d2618",
+        blocBordure: "#00e676",
+        blocMotif: "rgba(0, 230, 118, 0.4)",
+        blocRivet: "#69f0ae",
+        picCouleur: "#ff1744"
+    },
+    {
+        nom: "ABYSSES ÉLECTRIQUES",
+        fond: "#0c1829",
+        etoiles: "#80d8ff",
+        sol: "#00b0ff",
+        solBordure: "#40c4ff",
+        sousSol: "#081320",
+        blocCorps: "#102238",
+        blocBordure: "#00b0ff",
+        blocMotif: "rgba(0, 176, 255, 0.4)",
+        blocRivet: "#80d8ff",
+        picCouleur: "#ff3d00"
+    },
+    {
+        nom: "OR COSMIQUE",
+        fond: "#231e0c",
+        etoiles: "#fff9c4",
+        sol: "#ffd700",
+        solBordure: "#ffea00",
+        sousSol: "#2b2207",
+        blocCorps: "#2b2512",
+        blocBordure: "#ffd700",
+        blocMotif: "rgba(255, 215, 0, 0.4)",
+        blocRivet: "#fff176",
+        picCouleur: "#ff1744"
+    }
+];
+
+function getThemeActuel() {
+    return THEMES_NIVEAU[niveauActuel % THEMES_NIVEAU.length];
+}
+
+// =====================================================
+// CONFIGURATION DU NIVEAU (VITESSE DYNAMIQUE & CHALLENGE)
+// =====================================================
+function getConfigNiveau(num) {
+    const vitesse = Math.min(14, 7.8 + num * 0.45);
+    return {
+        vitesse: Number(vitesse.toFixed(2))
+    };
+}
+
+// =====================================================
+// FONCTIONS DE CRÉATION D'ESCALIERS DE BLOCS
+// =====================================================
+function ajouterMarche(x, hauteurEnBlocs, largeur) {
+    const tailleBloc = 40;
+    for (let h = 1; h <= hauteurEnBlocs; h++) {
+        const yBloc = sol - h * tailleBloc;
+        for (let bx = x; bx < x + largeur; bx += tailleBloc) {
+            blocs.push({
+                x: bx,
+                y: yBloc,
+                largeur: tailleBloc,
+                hauteur: tailleBloc,
+                type: "marche"
+            });
+        }
+    }
+}
+
+function genererEscalier(curseurX, type) {
+    const largeurPic = 40;
+    const espaceGap = 70; // Creux entre chaque marche contenant le pic
+    const largeurMarche1 = 200; // 5 blocs
+    const largeurMarche2 = 280; // 7 blocs
+    const largeurMarche3 = 240; // 6 blocs
+
+    // 1. Pic d'appel pour déclencher le saut vers la première marche
+    pics.push({
+        x: curseurX,
+        y: sol,
+        largeur: largeurPic,
+        hauteur: 40,
+        direction: "haut",
+        estDouble: false
+    });
+    curseurX += largeurPic + 130;
+
+    if (type === "pyramide") {
+        // MARCHE 1 (1 bloc de haut, y = 300)
+        ajouterMarche(curseurX, 1, largeurMarche1);
+        curseurX += largeurMarche1;
+
+        // PIC 1 dans le creux entre marche 1 et 2
+        pics.push({
+            x: curseurX + 15,
+            y: sol,
+            largeur: largeurPic,
+            hauteur: 40,
+            direction: "haut",
+            estDouble: false
+        });
+        curseurX += espaceGap;
+
+        // MARCHE 2 (Sommet : 2 blocs de haut, y = 260)
+        ajouterMarche(curseurX, 2, largeurMarche2);
+        curseurX += largeurMarche2;
+
+        // PIC 2 dans le creux entre marche 2 et 3
+        pics.push({
+            x: curseurX + 15,
+            y: sol,
+            largeur: largeurPic,
+            hauteur: 40,
+            direction: "haut",
+            estDouble: false
+        });
+        curseurX += espaceGap;
+
+        // MARCHE 3 (Descente : 1 bloc de haut, y = 300)
+        ajouterMarche(curseurX, 1, largeurMarche3);
+        curseurX += largeurMarche3;
+
+        // PIC 3 de sortie vers le sol
+        pics.push({
+            x: curseurX + 15,
+            y: sol,
+            largeur: largeurPic,
+            hauteur: 40,
+            direction: "haut",
+            estDouble: false
+        });
+        curseurX += espaceGap + 200;
+
+    } else {
+        // ESCALIER MONTANT (2 ou 3 marches)
+        const troisMarches = Math.random() < 0.45;
+
+        // MARCHE 1 (1 bloc de haut, y = 300)
+        ajouterMarche(curseurX, 1, largeurMarche1);
+        curseurX += largeurMarche1;
+
+        // PIC 1 entre marche 1 et 2
+        pics.push({
+            x: curseurX + 15,
+            y: sol,
+            largeur: largeurPic,
+            hauteur: 40,
+            direction: "haut",
+            estDouble: false
+        });
+        curseurX += espaceGap;
+
+        // MARCHE 2 (2 blocs de haut, y = 260)
+        ajouterMarche(curseurX, 2, largeurMarche2);
+        curseurX += largeurMarche2;
+
+        if (troisMarches) {
+            // PIC 2 entre marche 2 et 3
+            pics.push({
+                x: curseurX + 15,
+                y: sol,
+                largeur: largeurPic,
+                hauteur: 40,
+                direction: "haut",
+                estDouble: false
+            });
+            curseurX += espaceGap;
+
+            // MARCHE 3 (3 blocs de haut, y = 220)
+            ajouterMarche(curseurX, 3, 280);
+            curseurX += 280;
+
+            // PIC 3 de sortie (descente vers le sol)
+            pics.push({
+                x: curseurX + 15,
+                y: sol,
+                largeur: largeurPic,
+                hauteur: 40,
+                direction: "haut",
+                estDouble: false
+            });
+            curseurX += espaceGap + 240;
+        } else {
+            // PIC 2 de sortie (descente vers le sol)
+            pics.push({
+                x: curseurX + 15,
+                y: sol,
+                largeur: largeurPic,
+                hauteur: 40,
+                direction: "haut",
+                estDouble: false
+            });
+            curseurX += espaceGap + 220;
+        }
+    }
+
+    return curseurX;
+}
+
+// =====================================================
+// CRÉATION PROCÉDURALE DU NIVEAU (VARIÉ & INTENSE)
+// =====================================================
+function creerNiveau(num) {
+    const config = getConfigNiveau(num);
+    vitesseJeu = config.vitesse;
+
+    portails = [];
+    blocs = [];
+    pics = [];
+    particules = [];
+    banniereTexte = "";
+    banniereTemps = 0;
+    distanceNiveau = 0;
+
+    // Réinitialisation du joueur
+    cube.x = 100;
+    cube.mode = "cube";
+    cube.y = sol - cube.tailleCube;
+    cube.vitesseY = 0;
+    cube.auSol = true;
+    cube.rotation = 0;
+
+    mettreAJourBadgeMode();
+
+    // DÉCISION ALÉATOIRE : 1 fois sur 3 (environ 33.3% de chance d'avoir la fusée)
+    niveauContientFusee = Math.random() < (1 / 3);
+
+    let curseurX = 550;
+
+    if (niveauContientFusee) {
+        // =============================================
+        // NIVEAU AVEC LE MONDE DE LA FUSÉE
+        // =============================================
+
+        // 1. Démarrage en Cube (avec parfois un escalier de blocs !)
+        if (Math.random() < 0.45) {
+            curseurX = genererEscalier(curseurX, Math.random() < 0.5 ? "pyramide" : "montee");
+        } else {
+            const nbObstaclesCube = 2 + Math.floor(Math.random() * 2) + Math.min(num, 2);
+            for (let i = 0; i < nbObstaclesCube; i++) {
+                const estDouble = (num > 0 || i > 0) && Math.random() < 0.28;
+                const largeur = estDouble ? 80 : 40;
+                pics.push({
+                    x: curseurX,
+                    y: sol,
+                    largeur: largeur,
+                    hauteur: 40,
+                    direction: "haut",
+                    estDouble: estDouble
+                });
+                curseurX += largeur + 320 + Math.random() * 100;
+            }
+        }
+
+        // 2. Portail Fusée
+        const xPortailFusee = curseurX + 160;
+        portails.push({
+            x: xPortailFusee,
+            y: 110,
+            largeur: 40,
+            hauteur: 160,
+            type: "fusee",
+            franchi: false
+        });
+
+        // 3. Le Tunnel Hardcore de la Fusée
+        const tunnelDebutX = xPortailFusee + 120;
+        const longueurTunnel = 2800 + Math.min(num * 400, 2400) + Math.floor(Math.random() * 500);
+        const tunnelFinX = tunnelDebutX + longueurTunnel;
+
+        const tailleBloc = 40;
+        const yPlafondBloc = 45;
+        const hautPlafond = 55;
+        const ySolBloc = 285;
+        const hautSol = 55;
+
+        for (let bx = tunnelDebutX; bx <= tunnelFinX; bx += tailleBloc) {
+            blocs.push({
+                x: bx,
+                y: yPlafondBloc,
+                largeur: tailleBloc,
+                hauteur: hautPlafond,
+                type: "plafond"
+            });
+            blocs.push({
+                x: bx,
+                y: ySolBloc,
+                largeur: tailleBloc,
+                hauteur: hautSol,
+                type: "sol"
+            });
+        }
+
+        let xPicDansTunnel = tunnelDebutX + 320;
+        while (xPicDansTunnel < tunnelFinX - 220) {
+            const choix = Math.random();
+            const espaceBase = 220 - Math.min(num * 10, 50);
+
+            if (choix < 0.25) {
+                // Chicane / Slalom
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: ySolBloc,
+                    largeur: 40,
+                    hauteur: 36,
+                    direction: "haut",
+                    estDouble: false
+                });
+                pics.push({
+                    x: xPicDansTunnel + 130,
+                    y: yPlafondBloc + hautPlafond,
+                    largeur: 40,
+                    hauteur: 36,
+                    direction: "bas",
+                    estDouble: false
+                });
+                xPicDansTunnel += 130 + 40 + espaceBase + Math.random() * 40;
+            } else if (choix < 0.47) {
+                // Porte Double (passage au centre)
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: ySolBloc,
+                    largeur: 40,
+                    hauteur: 36,
+                    direction: "haut",
+                    estDouble: false
+                });
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: yPlafondBloc + hautPlafond,
+                    largeur: 40,
+                    hauteur: 36,
+                    direction: "bas",
+                    estDouble: false
+                });
+                xPicDansTunnel += 40 + espaceBase + Math.random() * 50;
+            } else if (choix < 0.65) {
+                // Pic double au sol
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: ySolBloc,
+                    largeur: 80,
+                    hauteur: 36,
+                    direction: "haut",
+                    estDouble: true
+                });
+                xPicDansTunnel += 80 + espaceBase + Math.random() * 40;
+            } else if (choix < 0.83) {
+                // Pic double au plafond
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: yPlafondBloc + hautPlafond,
+                    largeur: 80,
+                    hauteur: 36,
+                    direction: "bas",
+                    estDouble: true
+                });
+                xPicDansTunnel += 80 + espaceBase + Math.random() * 40;
+            } else if (choix < 0.93) {
+                // Bloc flottant piégé
+                const piegeHaut = Math.random() < 0.5;
+                blocs.push({
+                    x: xPicDansTunnel,
+                    y: 172,
+                    largeur: 40,
+                    hauteur: 40,
+                    type: "centre"
+                });
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: piegeHaut ? 172 : 212,
+                    largeur: 40,
+                    hauteur: 28,
+                    direction: piegeHaut ? "haut" : "bas",
+                    estDouble: false
+                });
+                xPicDansTunnel += 40 + espaceBase + Math.random() * 45;
+            } else {
+                // Pic simple
+                const auSol = Math.random() < 0.5;
+                pics.push({
+                    x: xPicDansTunnel,
+                    y: auSol ? ySolBloc : (yPlafondBloc + hautPlafond),
+                    largeur: 40,
+                    hauteur: 36,
+                    direction: auSol ? "haut" : "bas",
+                    estDouble: false
+                });
+                xPicDansTunnel += 40 + espaceBase + Math.random() * 50;
+            }
+        }
+
+        // 4. Portail de sortie (Retour Cube)
+        const xPortailCube = tunnelFinX + 110;
+        portails.push({
+            x: xPortailCube,
+            y: 110,
+            largeur: 40,
+            hauteur: 160,
+            type: "cube",
+            franchi: false
+        });
+
+        // 5. Sprint final en Cube
+        let curseurFinal = xPortailCube + 380;
+        const nbObstaclesFinal = 1 + (Math.random() < 0.4 ? 1 : 0);
+        for (let i = 0; i < nbObstaclesFinal; i++) {
+            const estDouble = num > 1 && Math.random() < 0.3;
+            const largeur = estDouble ? 80 : 40;
+            pics.push({
+                x: curseurFinal,
+                y: sol,
+                largeur: largeur,
+                hauteur: 40,
+                direction: "haut",
+                estDouble: estDouble
+            });
+            curseurFinal += largeur + 320 + Math.random() * 80;
+        }
+
+        const ligneArriveeX = curseurFinal + 180;
+        ligneArrivee = {
+            x: ligneArriveeX,
+            franchi: false
+        };
+        distanceTotaleNiveau = ligneArriveeX;
+
+    } else {
+        // =============================================
+        // NIVEAU 100% CUBE (PARCOURS DE PLATEFORME & ESCALIERS)
+        // =============================================
+        const nbObstacles = 7 + Math.min(num, 5) + Math.floor(Math.random() * 3);
+        let escalierPlace = false;
+
+        for (let i = 0; i < nbObstacles; i++) {
+            // Chance d'insérer un escalier de blocs avec pics entre chaque marche !
+            // Au moins 1 escalier garanti par niveau 100% Cube
+            const peutMettreEscalier = (i >= 1 && i <= nbObstacles - 2);
+            const chanceEscalier = (!escalierPlace && i >= 2) || (Math.random() < 0.38);
+
+            if (peutMettreEscalier && chanceEscalier) {
+                const typeEscalier = Math.random() < 0.5 ? "pyramide" : "montee";
+                curseurX = genererEscalier(curseurX, typeEscalier);
+                escalierPlace = true;
+                i++; // L'escalier équivaut à plusieurs obstacles
+                continue;
+            }
+
+            const choix = Math.random();
+            let estDouble = false;
+            let largeur = 40;
+
+            if (choix < 0.35 && (num > 0 || i > 1)) {
+                estDouble = true;
+                largeur = 80;
+            }
+
+            pics.push({
+                x: curseurX,
+                y: sol,
+                largeur: largeur,
+                hauteur: 40,
+                direction: "haut",
+                estDouble: estDouble
+            });
+
+            curseurX += largeur + 320 + Math.random() * 80 - Math.min(num * 10, 50);
+        }
+
+        const ligneArriveeX = curseurX + 220;
+        ligneArrivee = {
+            x: ligneArriveeX,
+            franchi: false
+        };
+        distanceTotaleNiveau = ligneArriveeX;
+    }
+}
+
+// =====================================================
+// CHARGEMENT DU NIVEAU
+// =====================================================
+function chargerNiveau(numero) {
+    niveauActuel = numero;
+    creerNiveau(niveauActuel);
+
+    const theme = getThemeActuel();
+    const typeLabel = niveauContientFusee ? "🚀 FUSÉE" : "🟩 100% CUBE";
+    const typeColor = niveauContientFusee ? "#ff007f" : "#00eaff";
+
+    affichageNiveau.innerHTML = `${niveauActuel + 1} <span style="font-size:12px; color:${typeColor};">(${typeLabel})</span> <span style="font-size:12px; color:${theme.solBordure};">(${theme.nom})</span>`;
+    perdu = false;
+    niveauTermine = false;
+
+    if (niveauContientFusee) {
+        message.textContent = `Niveau ${niveauActuel + 1} : Monde ${theme.nom} avec PORTAIL FUSÉE ! 🚀`;
+    } else {
+        message.textContent = `Niveau ${niveauActuel + 1} : Monde ${theme.nom} — Défi 100% CUBE ! 🟩 (Touche l'écran / ESPACE)`;
+    }
+}
+
+// =====================================================
+// GESTION DU BADGE DE MODE
+// =====================================================
+function mettreAJourBadgeMode() {
+    if (affichageMode) {
+        if (cube.mode === "fusee") {
+            affichageMode.textContent = "🚀 FUSÉE";
+            affichageMode.className = "mode-fusee";
+        } else {
+            affichageMode.textContent = "🟩 CUBE";
+            affichageMode.className = "mode-cube";
+        }
+    }
+    if (texteZoneTactile) {
+        if (cube.mode === "fusee") {
+            texteZoneTactile.textContent = "🚀 TOUCHE POUR MONTER (FUSÉE)";
+        } else {
+            texteZoneTactile.textContent = "👆 TOUCHE POUR SAUTER (CUBE)";
+        }
+    }
+}
+
+// =====================================================
+// COMMANDES (CLAVIER, SOURIS, TACTILE ANDROID & IPHONE)
+// =====================================================
+function actionPression() {
+    if (!partieCommencee) return;
+
+    espaceEnfonce = true;
+    debloquerAudioMobile(); // Déverrouille l'audio
+
+    if (perdu) {
+        recommencerJeu();
+        return;
+    }
+
+    if (niveauTermine) {
+        chargerNiveau(niveauActuel + 1);
+        return;
+    }
+
+    // Saut en mode Cube
+    if (cube.mode === "cube" && cube.auSol) {
+        cube.vitesseY = cube.forceSaut;
+        cube.auSol = false;
+        sonSaut();
+    } else if (cube.mode === "fusee") {
+        // En mode Fusée : chaque appui donne une impulsion pour monter un peu !
+        cube.vitesseY = cube.impulsionFusee;
+        sonBoostFusee();
+        creerEclatParticules(cube.x, cube.y + cube.hauteurFusee / 2, "#ffaa00", 6);
+    }
+}
+
+function actionRelachement() {
+    espaceEnfonce = false;
+    if (zoneTactileMobile) {
+        zoneTactileMobile.classList.remove("touche-active");
+    }
+}
+
+// Clavier PC (ESPACE)
+document.addEventListener("keydown", function (event) {
+    if (event.code === "Space") {
+        event.preventDefault();
+        if (event.repeat) return;
+        actionPression();
+    }
+});
+
+document.addEventListener("keyup", function (event) {
+    if (event.code === "Space") {
+        actionRelachement();
+    }
+});
+
+// Souris sur le Canvas
+canvas.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    actionPression();
+});
+
+if (zoneTactileMobile) {
+    zoneTactileMobile.addEventListener("mousedown", function (e) {
+        e.preventDefault();
+        zoneTactileMobile.classList.add("touche-active");
+        actionPression();
+    });
+}
+
+window.addEventListener("mouseup", function () {
+    actionRelachement();
+});
+
+// GESTION TACTILE OPTIMISÉE POUR ANDROID & IPHONE
+function estElementExcluTactile(target) {
+    if (!target) return false;
+    return target.closest("#menu") ||
+           target.closest("#btnPleinEcran") ||
+           target.closest("#scores");
+}
+
+function gererPressionTactile(e) {
+    if (!partieCommencee || menu.style.display !== "none") {
+        return;
+    }
+    if (estElementExcluTactile(e.target)) {
+        return;
+    }
+
+    if (e.cancelable) {
+        e.preventDefault();
+    }
+
+    if (zoneTactileMobile) {
+        zoneTactileMobile.classList.add("touche-active");
+    }
+
+    actionPression();
+}
+
+function gererRelachementTactile(e) {
+    if (!partieCommencee || menu.style.display !== "none") {
+        return;
+    }
+    if (estElementExcluTactile(e.target)) {
+        return;
+    }
+
+    if (e.cancelable) {
+        e.preventDefault();
+    }
+
+    actionRelachement();
+}
+
+// N'importe quel toucher sur l'écran du smartphone fait sauter ou voler !
+window.addEventListener("touchstart", gererPressionTactile, { passive: false });
+window.addEventListener("touchend", gererRelachementTactile, { passive: false });
+window.addEventListener("touchcancel", gererRelachementTactile, { passive: false });
+
+window.addEventListener("blur", function () {
+    actionRelachement();
+});
+
+// Empêcher le zoom accidentel (double-tap ou pincement sur iOS Safari)
+document.addEventListener("dblclick", function (e) {
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener("gesturestart", function (e) {
+    e.preventDefault();
+});
+
+// DÉBLOCAGE COMPLET DU SON SUR MOBILE (IOS SAFARI & ANDROID)
+function debloquerAudioMobile() {
+    try {
+        const aCtx = getAudioContext();
+        if (aCtx && aCtx.state === "suspended") {
+            aCtx.resume();
+        }
+        if (aCtx) {
+            const buffer = aCtx.createBuffer(1, 1, 22050);
+            const source = aCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(aCtx.destination);
+            source.start(0);
+        }
+    } catch (e) {}
+}
+
+window.addEventListener("touchstart", debloquerAudioMobile, { once: true, passive: true });
+window.addEventListener("click", debloquerAudioMobile, { once: true, passive: true });
+
+// MODE PLEIN ÉCRAN
+if (btnPleinEcran) {
+    btnPleinEcran.addEventListener("click", function (e) {
+        e.stopPropagation();
+        basculerPleinEcran();
+    });
+    btnPleinEcran.addEventListener("touchstart", function (e) {
+        e.stopPropagation();
+    }, { passive: true });
+}
+
+function basculerPleinEcran() {
+    const doc = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (doc.requestFullscreen) {
+            doc.requestFullscreen().catch(() => {});
+        } else if (doc.webkitRequestFullscreen) {
+            doc.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+
+// =====================================================
+// MENU & COMMENCER LA PARTIE
+// =====================================================
+boutonCommencer.addEventListener("click", commencerPartie);
+
+pseudoInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        commencerPartie();
+    }
+});
+
+function commencerPartie() {
+    nomJoueur = pseudoInput.value.trim();
+    if (nomJoueur === "") {
+        nomJoueur = "Player";
+    }
+
+    affichageJoueur.textContent = nomJoueur;
+    menu.style.display = "none";
+
+    getAudioContext();
+
+    partieCommencee = true;
+    score = 0;
+    affichageScore.textContent = "0";
+
+    chargerNiveau(0);
+}
+
+// =====================================================
+// COLLISION AVEC UN PIC
+// =====================================================
+function collisionPic(joueur, pic) {
+    const marge = 6;
+    const jLargeur = joueur.largeur;
+    const jHauteur = joueur.hauteur;
+
+    const jGauche = joueur.x + marge;
+    const jDroite = joueur.x + jLargeur - marge;
+    const jHaut = joueur.y + marge;
+    const jBas = joueur.y + jHauteur - marge;
+
+    if (pic.direction === "haut") {
+        // Pic au sol (pointe vers le haut)
+        const picHaut = pic.y - pic.hauteur + marge;
+        const picBas = pic.y;
+
+        if (
+            jDroite > pic.x + marge &&
+            jGauche < pic.x + pic.largeur - marge &&
+            jBas > picHaut &&
+            jHaut < picBas
+        ) {
+            return true;
+        }
+    } else {
+        // Pic au plafond (pointe vers le bas)
+        const picHaut = pic.y;
+        const picBas = pic.y + pic.hauteur - marge;
+
+        if (
+            jDroite > pic.x + marge &&
+            jGauche < pic.x + pic.largeur - marge &&
+            jBas > picHaut &&
+            jHaut < picBas
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// =====================================================
+// GESTION DES PARTICULES
+// =====================================================
+function creerEclatParticules(x, y, couleur, nombre) {
+    for (let i = 0; i < nombre; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vitesse = Math.random() * 5.5 + 1.5;
+        particules.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * vitesse,
+            vy: Math.sin(angle) * vitesse,
+            taille: Math.random() * 5 + 2,
+            couleur: couleur,
+            alpha: 1,
+            decay: Math.random() * 0.03 + 0.02
+        });
+    }
+}
+
+function updateParticules() {
+    for (let i = particules.length - 1; i >= 0; i--) {
+        const p = particules[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) {
+            particules.splice(i, 1);
+        }
+    }
+}
+
+function dessinerParticules() {
+    ctx.save();
+    for (let p of particules) {
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle = p.couleur;
+        ctx.fillRect(p.x, p.y, p.taille, p.taille);
+    }
+    ctx.restore();
+}
+
+// =====================================================
+// MISE À JOUR (UPDATE)
+// =====================================================
+function update() {
+    if (!partieCommencee || perdu || niveauTermine) {
+        return;
+    }
+
+    // -------------------------------------------------
+    // ÉTOILES DE FOND DÉFILANTES
+    // -------------------------------------------------
+    for (let e of etoiles) {
+        e.x -= e.vitesse * (vitesseJeu / 5);
+        if (e.x < 0) e.x = canvas.width;
+    }
+
+    // -------------------------------------------------
+    // PHYSIQUE SELON LE MODE (CUBE OU FUSÉE)
+    // -------------------------------------------------
+    let toucheSol = false;
+
+    if (cube.mode === "cube") {
+        // Gravité du Cube
+        cube.vitesseY += cube.graviteCube;
+        cube.y += cube.vitesseY;
+
+        // Atterrissage au sol naturel
+        if (cube.y + cube.tailleCube >= sol) {
+            cube.y = sol - cube.tailleCube;
+            cube.vitesseY = 0;
+            cube.auSol = true;
+            cube.rotation = Math.round(cube.rotation / 90) * 90;
+            toucheSol = true;
+        }
+    } else if (cube.mode === "fusee") {
+        // PHYSIQUE DE LA FUSÉE :
+        // Chaque appui sur ESPACE donne une impulsion pour monter un peu (géré dans actionPression).
+        // Quand on ne fait rien -> la fusée descend par gravité !
+        cube.vitesseY += cube.graviteFusee;
+
+        // Vitesse maximale de descente contrôlée
+        cube.vitesseY = Math.max(-7.5, Math.min(cube.vitesseChuteMax, cube.vitesseY));
+        cube.y += cube.vitesseY;
+
+        // Inclinaison fluide selon la vitesse verticale
+        cube.rotation = cube.vitesseY * 4.0;
+
+        // Particules d'échappement du réacteur
+        if (Math.random() < 0.65) {
+            const monte = cube.vitesseY < 0;
+            particules.push({
+                x: cube.x,
+                y: cube.y + cube.hauteurFusee / 2 + (Math.random() * 4 - 2),
+                vx: -vitesseJeu * 0.8 - Math.random() * 2,
+                vy: (Math.random() - 0.5) * 1.5,
+                taille: Math.random() * 4 + 2,
+                couleur: monte ? (Math.random() > 0.4 ? "#ffcc00" : "#ff3300") : "#00c3ff",
+                alpha: 1,
+                decay: 0.05
+            });
+        }
+
+        // Limites de sécurité de l'écran en fusée
+        if (cube.y <= 0) {
+            perdre();
+            return;
+        }
+        if (cube.y + cube.hauteurFusee >= sol) {
+            perdre();
+            return;
+        }
+    }
+
+    // -------------------------------------------------
+    // DÉFILEMENT DU NIVEAU
+    // -------------------------------------------------
+    for (let p of portails) p.x -= vitesseJeu;
+    for (let b of blocs) b.x -= vitesseJeu;
+    for (let p of pics) p.x -= vitesseJeu;
+    if (ligneArrivee) ligneArrivee.x -= vitesseJeu;
+
+    distanceNiveau += vitesseJeu;
+
+    // -------------------------------------------------
+    // DÉTECTION DU PORTAIL (TRANSFORMATION)
+    // -------------------------------------------------
+    for (let portail of portails) {
+        if (!portail.franchi) {
+            if (
+                cube.x + cube.largeur > portail.x &&
+                cube.x < portail.x + portail.largeur &&
+                cube.y + cube.hauteur > portail.y &&
+                cube.y < portail.y + portail.hauteur
+            ) {
+                portail.franchi = true;
+
+                if (portail.type === "fusee" && cube.mode !== "fusee") {
+                    // TRANSFORMATION EN FUSÉE
+                    cube.mode = "fusee";
+                    cube.vitesseY = 0;
+                    cube.rotation = 0;
+                    mettreAJourBadgeMode();
+                    banniereTexte = "🚀 MODE FUSÉE ! TOUCHE L'ÉCRAN POUR MONTER";
+                    banniereTemps = 140;
+                    sonPortail();
+                    creerEclatParticules(cube.x + cube.largeur / 2, cube.y + cube.hauteur / 2, "#ff007f", 30);
+                } else if (portail.type === "cube" && cube.mode !== "cube") {
+                    // RETOUR EN CUBE
+                    cube.mode = "cube";
+                    cube.vitesseY = 0;
+                    cube.rotation = 0;
+                    mettreAJourBadgeMode();
+                    banniereTexte = "🟩 RETOUR EN CUBE ! TOUCHE L'ÉCRAN POUR SAUTER";
+                    banniereTemps = 140;
+                    sonPortail();
+                    creerEclatParticules(cube.x + cube.largeur / 2, cube.y + cube.hauteur / 2, "#00ff88", 30);
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------
+    // DÉTECTION DES BLOCS (TUNNEL OU ESCALIERS)
+    // -------------------------------------------------
+    if (cube.mode === "fusee") {
+        // EN MODE FUSÉE : Le moindre contact avec un bloc du tunnel est fatal !
+        for (let b of blocs) {
+            if (b.x + b.largeur > cube.x - 10 && b.x < cube.x + cube.largeur + 10) {
+                const marge = 4;
+                if (
+                    cube.x + cube.largeur - marge > b.x &&
+                    cube.x + marge < b.x + b.largeur &&
+                    cube.y + cube.hauteur - marge > b.y &&
+                    cube.y + marge < b.y + b.hauteur
+                ) {
+                    perdre();
+                    return;
+                }
+            }
+        }
+    } else if (cube.mode === "cube") {
+        // EN MODE CUBE : Les blocs forment des marches solides (escaliers)
+        let surUnBloc = false;
+
+        for (let b of blocs) {
+            if (b.x + b.largeur > cube.x - 10 && b.x < cube.x + cube.largeur + 10) {
+                const margeH = 5;
+                const chevauchementH =
+                    (cube.x + cube.largeur - margeH > b.x) &&
+                    (cube.x + margeH < b.x + b.largeur);
+
+                if (chevauchementH) {
+                    const pieds = cube.y + cube.hauteur;
+                    const bHaut = b.y;
+                    const bBas = b.y + b.hauteur;
+
+                    // 1. Atterrissage sur le dessus du bloc (marche d'escalier)
+                    // Le cube descend ou est posé, et ses pieds atteignent la surface supérieure
+                    if (cube.vitesseY >= 0 && pieds >= bHaut - 4 && pieds <= bHaut + 15) {
+                        cube.y = bHaut - cube.hauteur;
+                        cube.vitesseY = 0;
+                        cube.auSol = true;
+                        cube.rotation = Math.round(cube.rotation / 90) * 90;
+                        surUnBloc = true;
+                    }
+                    // 2. Choc frontal contre la paroi du bloc ou sous la marche
+                    else if (pieds > bHaut + 15 && cube.y < bBas - 4) {
+                        perdre();
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Si le joueur n'est ni sur le sol naturel ni sur un bloc, il est dans les airs
+        if (!toucheSol && !surUnBloc) {
+            cube.auSol = false;
+            cube.rotation += 3;
+        }
+    }
+
+    // -------------------------------------------------
+    // DÉTECTION DES PICS (SOL OU PLAFOND DANS LE TUNNEL)
+    // -------------------------------------------------
+    for (let pic of pics) {
+        if (pic.x + pic.largeur > cube.x - 10 && pic.x < cube.x + cube.largeur + 10) {
+            if (collisionPic(cube, pic)) {
+                perdre();
+                return;
+            }
+        }
+    }
+
+    // -------------------------------------------------
+    // LIGNE D'ARRIVÉE DU NIVEAU
+    // -------------------------------------------------
+    if (ligneArrivee && !ligneArrivee.franchi) {
+        if (cube.x >= ligneArrivee.x) {
+            ligneArrivee.franchi = true;
+            terminerNiveau();
+            return;
+        }
+    }
+
+    // -------------------------------------------------
+    // SCORE & PARTICULES
+    // -------------------------------------------------
+    score += 0.15;
+    affichageScore.textContent = Math.floor(score);
+
+    updateParticules();
+}
+
+// =====================================================
+// PERDRE (GAME OVER)
+// =====================================================
+function perdre() {
+    perdu = true;
+    sonCrash();
+    creerEclatParticules(cube.x + cube.largeur / 2, cube.y + cube.hauteur / 2, "#ff3030", 35);
+    creerEclatParticules(cube.x + cube.largeur / 2, cube.y + cube.hauteur / 2, "#00eaff", 20);
+
+    message.textContent = "💀 CRASH ! Touche l'écran (ou ESPACE) pour recommencer";
+    ajouterScore();
+}
+
+// =====================================================
+// NIVEAU TERMINÉ
+// =====================================================
+function terminerNiveau() {
+    niveauTermine = true;
+    score += 100; // Bonus pour avoir terminé le niveau
+    affichageScore.textContent = Math.floor(score);
+    sonVictoire();
+
+    creerEclatParticules(canvas.width / 2, 180, "gold", 45);
+    message.textContent = `🎉 Niveau ${niveauActuel + 1} réussi ! Touche l'écran (ou ESPACE) pour le Niveau ${niveauActuel + 2}`;
+}
+
+// =====================================================
+// RECOMMENCER LE JEU
+// =====================================================
+function recommencerJeu() {
+    score = 0;
+    affichageScore.textContent = "0";
+    chargerNiveau(0);
+}
+
+// =====================================================
+// DESSIN : CUBE
+// =====================================================
+function dessinerCube() {
+    ctx.save();
+    const centreX = cube.x + cube.tailleCube / 2;
+    const centreY = cube.y + cube.tailleCube / 2;
+    const demi = cube.tailleCube / 2;
+
+    ctx.translate(centreX, centreY);
+    ctx.rotate((cube.rotation * Math.PI) / 180);
+
+    // Corps du cube
+    ctx.fillStyle = "#00eaff";
+    ctx.fillRect(-demi, -demi, cube.tailleCube, cube.tailleCube);
+
+    // Bordure néon
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-demi, -demi, cube.tailleCube, cube.tailleCube);
+
+    // Motif intérieur
+    ctx.fillStyle = "white";
+    ctx.fillRect(-demi + 9, -demi + 9, 9, 9);
+    ctx.fillStyle = "#101020";
+    ctx.fillRect(-demi + 12, -demi + 12, 4, 4);
+
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN : FUSÉE (ROCKET / SHIP)
+// =====================================================
+function dessinerFusee() {
+    ctx.save();
+    const cx = cube.x + cube.largeurFusee / 2;
+    const cy = cube.y + cube.hauteurFusee / 2;
+
+    ctx.translate(cx, cy);
+    ctx.rotate((cube.rotation * Math.PI) / 180);
+
+    // 1. FLAMME DE RÉACTEUR
+    const monte = cube.vitesseY < 0;
+    const longueurFlamme = monte ? (18 + Math.random() * 8) : (6 + Math.random() * 3);
+
+    // Flamme extérieure (rouge/orange)
+    ctx.beginPath();
+    ctx.moveTo(-20, -5);
+    ctx.lineTo(-20 - longueurFlamme, 0);
+    ctx.lineTo(-20, 5);
+    ctx.closePath();
+    ctx.fillStyle = monte ? "#ff3300" : "#00aaff";
+    ctx.fill();
+
+    // Flamme intérieure (jaune/blanc lors de l'impulsion de montée)
+    if (monte) {
+        ctx.beginPath();
+        ctx.moveTo(-20, -3);
+        ctx.lineTo(-20 - longueurFlamme * 0.65, 0);
+        ctx.lineTo(-20, 3);
+        ctx.closePath();
+        ctx.fillStyle = "#ffea00";
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-20, -1.5);
+        ctx.lineTo(-20 - longueurFlamme * 0.35, 0);
+        ctx.lineTo(-20, 1.5);
+        ctx.closePath();
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+    }
+
+    // 2. AILERONS ARRIÈRE
+    ctx.fillStyle = "#0088cc";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1.5;
+
+    // Aileron supérieur
+    ctx.beginPath();
+    ctx.moveTo(-10, -9);
+    ctx.lineTo(-18, -16);
+    ctx.lineTo(-6, -9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Aileron inférieur
+    ctx.beginPath();
+    ctx.moveTo(-10, 9);
+    ctx.lineTo(-18, 16);
+    ctx.lineTo(-6, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 3. TUYÈRE DE PROPULSION
+    ctx.fillStyle = "#444455";
+    ctx.fillRect(-22, -6, 4, 12);
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-22, -6, 4, 12);
+
+    // 4. CORPS PRINCIPAL DE LA FUSÉE (PROFIL GÉOMÉTRIQUE GD)
+    ctx.beginPath();
+    ctx.moveTo(22, 0); // Nez pointu à l'avant
+    ctx.lineTo(8, -10);
+    ctx.lineTo(-18, -9);
+    ctx.lineTo(-18, 9);
+    ctx.lineTo(8, 10);
+    ctx.closePath();
+
+    const grad = ctx.createLinearGradient(-18, -9, 22, 9);
+    grad.addColorStop(0, "#00b4d8");
+    grad.addColorStop(1, "#00ffff");
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 5. COCKPIT VITRÉ
+    ctx.beginPath();
+    ctx.moveTo(4, -5);
+    ctx.lineTo(15, 0);
+    ctx.lineTo(4, 5);
+    ctx.lineTo(-3, 0);
+    ctx.closePath();
+    ctx.fillStyle = "white";
+    ctx.fill();
+    ctx.strokeStyle = "#003b5c";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Reflet cyan
+    ctx.fillStyle = "#00eaff";
+    ctx.fillRect(4, -2, 5, 4);
+
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN : SOL
+// =====================================================
+function dessinerSol() {
+    const theme = getThemeActuel();
+    // Surface d'herbe lumineuse
+    ctx.fillStyle = theme.sol;
+    ctx.fillRect(0, sol, canvas.width, 10);
+
+    // Sous-sol technologique
+    ctx.fillStyle = theme.sousSol;
+    ctx.fillRect(0, sol + 10, canvas.width, canvas.height - sol - 10);
+
+    // Ligne néon de sol
+    ctx.strokeStyle = theme.solBordure;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, sol);
+    ctx.lineTo(canvas.width, sol);
+    ctx.stroke();
+}
+
+// =====================================================
+// DESSIN : BLOCS DU TUNNEL
+// =====================================================
+function dessinerBlocs() {
+    const theme = getThemeActuel();
+    ctx.save();
+    for (let b of blocs) {
+        if (b.x + b.largeur < 0 || b.x > canvas.width) continue;
+
+        // Corps sombre du bloc
+        ctx.fillStyle = theme.blocCorps;
+        ctx.fillRect(b.x, b.y, b.largeur, b.hauteur);
+
+        // Bordure néon
+        ctx.strokeStyle = theme.blocBordure;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(b.x, b.y, b.largeur, b.hauteur);
+
+        // Motif intérieur Geometry Dash (carré concentrique)
+        ctx.strokeStyle = theme.blocMotif;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(b.x + 6, b.y + 6, b.largeur - 12, b.hauteur - 12);
+
+        // Rivet central
+        ctx.fillStyle = theme.blocRivet;
+        ctx.fillRect(b.x + b.largeur / 2 - 2, b.y + b.hauteur / 2 - 2, 4, 4);
+    }
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN : PICS (SOL OU PLAFOND)
+// =====================================================
+function dessinerPic(pic) {
+    if (pic.x + pic.largeur < 0 || pic.x > canvas.width) return;
+
+    const theme = getThemeActuel();
+    ctx.save();
+    ctx.fillStyle = theme.picCouleur;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1.5;
+
+    if (pic.direction === "bas") {
+        // PIC AU PLAFOND (POINTE VERS LE BAS)
+        if (pic.estDouble) {
+            // Premier pic
+            ctx.beginPath();
+            ctx.moveTo(pic.x, pic.y);
+            ctx.lineTo(pic.x + 20, pic.y + pic.hauteur);
+            ctx.lineTo(pic.x + 40, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Deuxième pic
+            ctx.beginPath();
+            ctx.moveTo(pic.x + 40, pic.y);
+            ctx.lineTo(pic.x + 60, pic.y + pic.hauteur);
+            ctx.lineTo(pic.x + 80, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(pic.x, pic.y);
+            ctx.lineTo(pic.x + pic.largeur / 2, pic.y + pic.hauteur);
+            ctx.lineTo(pic.x + pic.largeur, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+    } else {
+        // PIC AU SOL (POINTE VERS LE HAUT)
+        if (pic.estDouble) {
+            // Premier pic
+            ctx.beginPath();
+            ctx.moveTo(pic.x, pic.y);
+            ctx.lineTo(pic.x + 20, pic.y - pic.hauteur);
+            ctx.lineTo(pic.x + 40, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Deuxième pic
+            ctx.beginPath();
+            ctx.moveTo(pic.x + 40, pic.y);
+            ctx.lineTo(pic.x + 60, pic.y - pic.hauteur);
+            ctx.lineTo(pic.x + 80, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(pic.x, pic.y);
+            ctx.lineTo(pic.x + pic.largeur / 2, pic.y - pic.hauteur);
+            ctx.lineTo(pic.x + pic.largeur, pic.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN : PORTAILS
+// =====================================================
+function dessinerPortails() {
+    for (let p of portails) {
+        if (p.x + p.largeur < -100 || p.x > canvas.width + 100) continue;
+
+        ctx.save();
+        const cx = p.x + p.largeur / 2;
+        const cy = p.y + p.hauteur / 2;
+
+        const estFusee = p.type === "fusee";
+        const couleur = estFusee ? "#ff007f" : "#00ff88";
+        const couleurSecondaire = estFusee ? "#ff77dd" : "#88ffbb";
+
+        // Halo lumineux
+        ctx.shadowColor = couleur;
+        ctx.shadowBlur = 18;
+
+        // Anneau externe
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, p.largeur / 2, p.hauteur / 2, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = couleur;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Tourbillons d'énergie animés
+        const temps = Date.now() * 0.005;
+        for (let i = 1; i <= 3; i++) {
+            const rx = Math.max(2, (p.largeur / 2 - 4) * Math.abs(Math.sin(temps + i * 0.7)));
+            const ry = (p.hauteur / 2 - 8) * (0.6 + 0.3 * Math.cos(temps + i));
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = couleurSecondaire;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Pilliers métalliques haut et bas
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#cccccc";
+        ctx.fillRect(cx - 16, p.y - 8, 32, 10);
+        ctx.fillRect(cx - 16, p.y + p.hauteur - 2, 32, 10);
+
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx - 16, p.y - 8, 32, 10);
+        ctx.strokeRect(cx - 16, p.y + p.hauteur - 2, 32, 10);
+
+        // Badge au-dessus du portail
+        ctx.font = "bold 13px Arial";
+        ctx.textAlign = "center";
+        ctx.fillStyle = couleur;
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 6;
+        ctx.fillText(estFusee ? "🚀 PORTAIL FUSÉE" : "🟩 PORTAIL CUBE", cx, p.y - 14);
+
+        ctx.restore();
+    }
+}
+
+// =====================================================
+// DESSIN : LIGNE D'ARRIVÉE
+// =====================================================
+function dessinerArrivee() {
+    if (!ligneArrivee) return;
+    if (ligneArrivee.x < -60 || ligneArrivee.x > canvas.width + 60) return;
+
+    ctx.save();
+    // Arche lumineuse
+    ctx.strokeStyle = "#ffd700";
+    ctx.lineWidth = 4;
+    ctx.shadowColor = "#ffd700";
+    ctx.shadowBlur = 15;
+    ctx.strokeRect(ligneArrivee.x, 60, 24, sol - 60);
+
+    // Damier noir et blanc
+    const tailleCase = 12;
+    for (let y = 60; y < sol; y += tailleCase) {
+        for (let x = ligneArrivee.x; x < ligneArrivee.x + 24; x += tailleCase) {
+            const noir = ((x - ligneArrivee.x) / tailleCase + (y - 60) / tailleCase) % 2 === 0;
+            ctx.fillStyle = noir ? "#ffffff" : "#222222";
+            ctx.fillRect(x, y, tailleCase, tailleCase);
+        }
+    }
+
+    ctx.font = "bold 15px Arial";
+    ctx.fillStyle = "gold";
+    ctx.textAlign = "center";
+    ctx.fillText("FIN", ligneArrivee.x + 12, 45);
+
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN : INTERFACE HUD (BARRE DE PROGRESSION & BANNIÈRE)
+// =====================================================
+function dessinerInterface() {
+    ctx.save();
+
+    // 1. BARRE DE PROGRESSION GEOMETRY DASH EN HAUT
+    const pourcentage = Math.min(100, Math.max(0, Math.floor((distanceNiveau / distanceTotaleNiveau) * 100)));
+
+    // Fond de la barre
+    ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.fillRect(160, 10, canvas.width - 320, 8);
+
+    // Remplissage dynamique
+    const gradient = ctx.createLinearGradient(160, 0, canvas.width - 160, 0);
+    gradient.addColorStop(0, "#00eaff");
+    gradient.addColorStop(0.5, "#a855f7");
+    gradient.addColorStop(1, "#39d353");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(160, 10, (canvas.width - 320) * (pourcentage / 100), 8);
+
+    // Bordure
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(160, 10, canvas.width - 320, 8);
+
+    // Pourcentage
+    ctx.fillStyle = "white";
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText(`${pourcentage}%`, canvas.width - 150, 18);
+
+    // Indicateur de mode en haut à gauche
+    ctx.font = "bold 13px Arial";
+    if (cube.mode === "fusee") {
+        ctx.fillStyle = "#ff007f";
+        ctx.fillText("🚀 FUSÉE (Touche l'écran / ESPACE)", 20, 24);
+    } else {
+        ctx.fillStyle = "#00eaff";
+        ctx.fillText("🟩 CUBE (Touche l'écran / ESPACE)", 20, 24);
+    }
+
+    // Bannière flash temporaire lors du passage de portail
+    if (banniereTemps > 0) {
+        banniereTemps--;
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "gold";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 8;
+        ctx.fillText(banniereTexte, canvas.width / 2, 125);
+    }
+
+    ctx.restore();
+}
+
+// =====================================================
+// DESSIN GLOBAL (DRAW)
+// =====================================================
+function draw() {
+    const theme = getThemeActuel();
+
+    // 1. FOND DE L'ESPACE SELON LE THÈME
+    ctx.fillStyle = theme.fond;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. ÉTOILES DU THÈME
+    ctx.fillStyle = theme.etoiles;
+    for (let e of etoiles) {
+        ctx.fillRect(e.x, e.y, e.taille, e.taille);
+    }
+
+    // 3. SOL & ÉLÉMENTS DE NIVEAU
+    dessinerSol();
+    dessinerBlocs();
+    for (let pic of pics) {
+        dessinerPic(pic);
+    }
+    dessinerPortails();
+    dessinerArrivee();
+
+    // 4. PARTICULES
+    dessinerParticules();
+
+    // 5. JOUEUR (CUBE OU FUSÉE)
+    if (!perdu) {
+        if (cube.mode === "fusee") {
+            dessinerFusee();
+        } else {
+            dessinerCube();
+        }
+    }
+
+    // 6. INTERFACE HUD
+    dessinerInterface();
+
+    // 7. ÉCRAN GAME OVER
+    if (perdu) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#ff3030";
+        ctx.textAlign = "center";
+        ctx.font = "bold 55px Arial";
+        ctx.fillText("GAME OVER", canvas.width / 2, 160);
+
+        ctx.fillStyle = "white";
+        ctx.font = "24px Arial";
+        ctx.fillText(nomJoueur + " : " + Math.floor(score) + " points", canvas.width / 2, 210);
+
+        ctx.fillStyle = "cyan";
+        ctx.font = "20px Arial";
+        ctx.fillText("Touche l'écran (ou ESPACE) pour recommencer", canvas.width / 2, 255);
+    }
+
+    // 8. ÉCRAN NIVEAU TERMINÉ
+    if (niveauTermine && !perdu) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.72)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "gold";
+        ctx.textAlign = "center";
+        ctx.font = "bold 44px Arial";
+        ctx.fillText(`🎉 NIVEAU ${niveauActuel + 1} TERMINÉ !`, canvas.width / 2, 150);
+
+        const prochainTheme = THEMES_NIVEAU[(niveauActuel + 1) % THEMES_NIVEAU.length];
+        ctx.fillStyle = prochainTheme.solBordure;
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(`Prochain monde : ${prochainTheme.nom}`, canvas.width / 2, 195);
+
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText(`Score : ${Math.floor(score)} points`, canvas.width / 2, 235);
+
+        ctx.fillStyle = "cyan";
+        ctx.font = "18px Arial";
+        ctx.fillText("Touche l'écran (ou ESPACE) pour continuer", canvas.width / 2, 275);
+    }
+}
+
+// =====================================================
+// TABLEAU DES SCORES MONDIAL (GOOGLE SHEETS)
+// =====================================================
+const GOOGLE_SHEET_URL =
+    "https://script.google.com/a/macros/ind-philippeville.be/s/AKfycbymBy2aGku91y5uso43DOkSCAS7efiq2wv96y_tr20ONC536Kmvc_8mY-TgZEBNjyA/exec";
+
+let scores =
+    JSON.parse(localStorage.getItem("cubeScores")) || [];
+
+async function chargerScoresMondiaux() {
+    const statutElem = document.getElementById("statutConnexion");
+
+    if (!GOOGLE_SHEET_URL) {
+        if (statutElem) statutElem.innerHTML = "<span style='color:#f39c12;'>Mode local</span>";
+        afficherScores();
+        return;
+    }
+
+    listeScores.innerHTML = "<p style='text-align:center;color:#888;'>Chargement...</p>";
+
+    try {
+        const reponse = await fetch(GOOGLE_SHEET_URL);
+        const data = await reponse.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            scores = data;
+            localStorage.setItem("cubeScores", JSON.stringify(scores));
+            if (statutElem) statutElem.innerHTML = "<span style='color:#39d353;'>🟢 En direct de Google Sheets</span>";
+        } else if (statutElem && Array.isArray(data)) {
+            statutElem.innerHTML = "<span style='color:#39d353;'>🟢 Google Sheets connecté (vide)</span>";
+        }
+    } catch (err) {
+        console.warn("Impossible de charger les scores en ligne :", err);
+        if (statutElem) statutElem.innerHTML = "<span style='color:#f39c12;'>⚠️ Sauvegarde locale (Google non connecté)</span>";
+    }
+
+    afficherScores();
+}
+
+async function ajouterScore() {
+    let nouveauScore = Math.floor(score);
+
+    scores.push({
+        nom: nomJoueur,
+        score: nouveauScore
+    });
+
+    scores.sort((a, b) => b.score - a.score);
+    scores = scores.slice(0, 10);
+    localStorage.setItem("cubeScores", JSON.stringify(scores));
+    afficherScores();
+
+    if (GOOGLE_SHEET_URL) {
+        try {
+            const urlAvecParams = `${GOOGLE_SHEET_URL}?nom=${encodeURIComponent(nomJoueur)}&score=${nouveauScore}`;
+            const reponse = await fetch(urlAvecParams);
+            const data = await reponse.json();
+
+            if (Array.isArray(data) && data.length > 0) {
+                scores = data;
+                localStorage.setItem("cubeScores", JSON.stringify(scores));
+                afficherScores();
+            }
+        } catch (err) {
+            console.warn("Requête standard en attente, tentative no-cors :", err);
+            try {
+                const urlSecours = `${GOOGLE_SHEET_URL}?nom=${encodeURIComponent(nomJoueur)}&score=${nouveauScore}`;
+                await fetch(urlSecours, { mode: "no-cors" });
+            } catch (e2) {
+                console.warn("Échec envoi secours :", e2);
+            }
+        }
+    }
+}
+
+function afficherScores() {
+    listeScores.innerHTML = "";
+
+    if (scores.length === 0) {
+        listeScores.innerHTML = "<p style='text-align:center;color:#777;'>Aucun score enregistré</p>";
+        return;
+    }
+
+    scores.forEach((joueur, index) => {
+        const ligne = document.createElement("div");
+        ligne.className = "score";
+        ligne.innerHTML = `
+            <span class="nomScore">#${index + 1} ${joueur.nom}</span>
+            <span class="pointsScore">${joueur.score}</span>
+        `;
+        listeScores.appendChild(ligne);
+    });
+}
+
+// =====================================================
+// BOUCLE PRINCIPALE DE JEU (GAME LOOP)
+// =====================================================
+function boucle() {
+    update();
+    draw();
+    requestAnimationFrame(boucle);
+}
+
+// =====================================================
+// DÉMARRAGE
+// =====================================================
+chargerScoresMondiaux();
+boucle();
+
+</script>
+
+</body>
+</html>
